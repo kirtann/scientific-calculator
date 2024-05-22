@@ -1,12 +1,17 @@
+import { random, round } from "mathjs";
 import { useState } from "react";
+import ConfettiExplosion from "react-confetti-explosion";
 import "./App.css";
-import { evaluate, random, round } from "mathjs";
-import { btnValues } from "./constants/button";
+import Buttons from "./components/Buttons";
+import Display from "./components/Display";
+import ToggleButton from "./components/ToggleButton";
+import { calFact, checkBracketBalanced } from "./utils/features.js";
 
 function App() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [theme, setTheme] = useState(true);
+  const [isExploding, setIsExploding] = useState(false);
 
   const toggleTheme = () => {
     setTheme((prev) => !prev);
@@ -47,11 +52,12 @@ function App() {
     return Math.sqrt(input);
   }
   function cbrt(input) {
-    return input ^ (1 / 3);
+    return input ** (1 / 3);
   }
   function inv(input) {
-    return input ^ -1;
+    return input ** -1;
   }
+  const fact = calFact;
 
   const changePlusMinus = () => {
     if (output === "Invalid Input!!") return;
@@ -80,29 +86,6 @@ function App() {
         setInput((prev) => minus.concat(prev));
       }
     }
-  };
-
-  const fact = (n) => {
-    if (n === 0 || n === 1) return n;
-
-    return n * fact(n - 1);
-  };
-
-  const checkBracketBalanced = (expr) => {
-    let stack = [];
-    for (let i = 0; i < expr.length; i++) {
-      let x = expr[i];
-      if (x === "(") {
-        stack.push(x);
-        continue;
-      }
-
-      if (x === ")") {
-        if (stack.length === 0) return false;
-        else stack.pop();
-      }
-    }
-    return stack.length === 0;
   };
 
   const calcuate = () => {
@@ -160,10 +143,10 @@ function App() {
         setInput("");
         break;
       case "x\u00B2":
-        inputHandler("^2");
+        inputHandler("**2");
         break;
       case "x\u00B3":
-        inputHandler("^3");
+        inputHandler("**3");
         break;
       case "\u221Ax":
         inputHandler("sqrt(");
@@ -172,7 +155,7 @@ function App() {
         inputHandler("cbrt(");
         break;
       case "10\u02E3":
-        setInput(`10^${input}`);
+        setInput(`10**${input}`);
         break;
       case "e\u02E3":
         setInput(`${Math.E.toFixed(2)}^${input}`);
@@ -211,6 +194,12 @@ function App() {
         setInput(input + Math.PI.toFixed(2));
         break;
       case "=":
+        if (input.includes("4") && input.includes("3")) {
+          setIsExploding(true);
+          setTimeout(() => {
+            setIsExploding(false);
+          }, 3000);
+        }
         calcuate();
         break;
       case "Rad":
@@ -224,7 +213,14 @@ function App() {
       case "mr":
         break;
       case "Rand":
-        setInput(input + random());
+        setInput(input + random().toFixed(2));
+        break;
+      case "x\u02B8":
+        inputHandler("**");
+        break;
+      case "2\u207F\u1D48":
+        break;
+      case "EE":
         break;
       default:
         inputHandler(val);
@@ -233,106 +229,34 @@ function App() {
   };
 
   return (
-    <div
-      className={`h-screen w-screen flex justify-center items-center ${
-        theme ? " border border-black" : "bg-gray-900"
-      }`}
-    >
-      <div className="absolute right-0 top-0 mt-6 mr-6">
-        <label className="inline-flex items-center cursor-pointer">
-          <span
-            className={`me-3 text-sm font-medium ${
-              theme ? "text-gray-900" : "text-white"
-            }`}
-          >
-            light
-          </span>
-          <input
-            type="checkbox"
-            value=""
-            onChange={() => {
-              setTheme((prev) => !prev);
-            }}
-            className="sr-only peer"
-            checked={theme}
-          />
-          <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-          <span
-            className={`ms-3 text-sm font-medium ${
-              theme ? "text-gray-900" : "text-white"
-            }`}
-          >
-            dark
-          </span>
-        </label>
-      </div>
+    <>
       <div
-        className={` h-[70vh] w-[70vw] ${
-          theme ? "bg-gray-700" : "bg-white border border-white"
+        className={`h-screen w-screen flex justify-center items-center ${
+          theme ? " border border-black" : "bg-gray-900"
         }`}
       >
-        <div className="w-full h-[20%] flex justify-end items-center">
-          {output === "" ? (
-            <h1
-              className={` ${
-                theme ? "text-white" : "text-black"
-              } text-6xl  me-2`}
-            >
-              {input}
-            </h1>
-          ) : (
-            <div className="flex flex-col justify-end items-end me-2">
-              <h1
-                className={` ${theme ? "text-white" : "text-black"} text-2xl `}
-              >
-                {input}
-              </h1>
-              <h1
-                className={` ${theme ? "text-white" : "text-black"} text-6xl `}
-              >
-                {output}
-              </h1>
-            </div>
-          )}
-        </div>
-        <div className="w-full hidden md:grid h-[80%] grid-cols-10 grid-flow-rows gap-1 ">
-          {btnValues.map((value, index) => {
-            return (
-              <div
-                key={index}
-                onClick={() => handleClick(value.val)}
-                className={`flex justify-center ${
-                  value.val === "0" ? "col-span-2" : ""
-                } items-center ${value.col} ${
-                  theme ? "text-white" : "text-black"
-                } text-xl cursor-pointer hover:bg-emerald-500`}
-              >
-                {value.val}
-              </div>
-            );
-          })}
-        </div>
-        <div className="w-full md:hidden grid h-[80%] grid-cols-4 grid-flow-rows gap-1 ">
-          {btnValues
-            .filter((value) => value.mobile === true)
-            .map((value, index) => {
-              return (
-                <div
-                  onClick={() => handleClick(value.val)}
-                  className={`flex justify-center ${
-                    value.val === "0" ? "col-span-2" : ""
-                  } items-center ${value.col} ${
-                    theme ? "text-white" : "text-black"
-                  } text-xl cursor-pointer hover:bg-emerald-500`}
-                  key={index}
-                >
-                  {value.val}
-                </div>
-              );
-            })}
+        <ToggleButton theme={theme} toggleTheme={toggleTheme} />
+        <div
+          className={` h-[70vh] w-[70vw] ${
+            theme ? "bg-gray-700" : "bg-white border border-white"
+          }`}
+        >
+          <Display output={output} input={input} theme={theme} />
+          <Buttons handleClick={handleClick} theme={theme} />
         </div>
       </div>
-    </div>
+
+      {isExploding && (
+        <div className=" absolute top-0 left-0 flex justify-center items-center h-full w-full">
+          <ConfettiExplosion
+            force={0.8}
+            duration={3000}
+            particleCount={250}
+            width={1600}
+          />
+        </div>
+      )}
+    </>
   );
 }
 
