@@ -318,6 +318,7 @@ function App() {
             .map((value, index) => {
               return (
                 <div
+                  onClick={() => handleClick(value.val)}
                   className={`flex justify-center ${
                     value.val === "0" ? "col-span-2" : ""
                   } items-center ${value.col} ${
